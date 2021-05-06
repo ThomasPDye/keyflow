@@ -6,7 +6,6 @@ Created on Wed May  5 10:24:20 2021
 """
 
 import os
-import grender
 from cuflow import cuflow
 
 class QFN44(cuflow.Part):
@@ -20,14 +19,15 @@ class QFN44(cuflow.Part):
         self.pad(dc)
         dc.pop()
         # silkscreen outline
-        self.chamfered(dc,self.dims['DE']+0.1,self.dims['DE']+0.1)
+        silk = self.board.silk
+        self.chamfered(dc,self.dims['DE']+silk*1.5,self.dims['DE']+silk*1.5)
         # numbered pads
         for i in range(4):
             dc.left(90)
             dc.push()
             dc.forward(self.dims['DE']/2 - self.dims['L']/2)
             dc.right(90)
-            dc.forward(11*self.dims['e']/2)
+            dc.forward((11-1)*self.dims['e']/2)
             dc.left(180)
             self.train(dc, 11, lambda: self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
             dc.pop()
@@ -38,7 +38,8 @@ class TQFP44(cuflow.Part):
     dims = dict(DE=12.25,D1E1=10.10,L=0.75,b=0.45,e=0.8)
     def place(self, dc):
         # silkscreen outline
-        self.chamfered(dc, self.dims['D1E1']+0.1, self.dims['D1E1']+0.1)
+        silk = self.board.silk
+        self.chamfered(dc, self.dims['D1E1']+silk, self.dims['D1E1']+silk)
         # numbered pads
         for i in range(4):
             dc.left(90)
@@ -175,6 +176,3 @@ if __name__ == "__main__":
     brd.fill()
     brd.check()
     brd.save("output/atmega32u4_MU_Test")
-    rndrr = grender.Renderer("output/atmega32u4_MU_Test")
-    rndrr.new_window()
-    rndrr.render_layers(["GL2","GTL","GTS","GTO"])

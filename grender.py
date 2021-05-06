@@ -12,21 +12,18 @@ class Renderer:
     
     def __init__(self,basename):
         self.__basename__ = basename
-        self.ctx = []
+        self.ctx = GerberCairoContext()
     
-    def new_window(self):
-        self.ctx.append(GerberCairoContext())
+    def dump_image(self, name):
+        self.ctx.dump(name)
     
-    def clear_window(self, i):
-        if i in range(len(self.ctx)):
-            self.ctx[i].clear()
+    def clear_image(self):
+            self.ctx.clear()
     
     def render_layer(self,extension):
-        layer = gtools.load_layer(self.__basename__ + '.' + extension)
-        if len(self.ctx) == 0:
-            self.new_window()
-        n = len(self.ctx)-1
-        self.ctx[n].render_layer(layer)
+        name = self.__basename__ + '.' + extension
+        layer = gtools.load_layer(name)
+        self.ctx.render_layer(layer)
     
     def render_layers(self,extensions):
         for ext in extensions:

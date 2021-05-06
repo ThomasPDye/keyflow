@@ -20,6 +20,7 @@
 *.sub.pov
 *.gts.pov
 *.gtl.png
+output/
 
 
 # Byte-compiled / optimized / DLL files
