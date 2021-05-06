@@ -6,6 +6,7 @@ Created on Wed May  5 10:24:20 2021
 """
 
 from cuflow import cuflow
+from pcbtools.gerber import gerber as gtools
 
 class QFN44(cuflow.Part):
     family = "U"
@@ -159,4 +160,17 @@ class ATMEGA32U4_MU(QFN44):
 class ATMEGA32U4_AU(TQFP44):
     source = {'Microchip/Atmel' : 'ATMEGA32U4_AU'}
     mfr = 'ATMEGA32U4_AU'
+
+if __name__ == "__main__":
+    brd = cuflow.Board((50,50), trace=0.127, space=0.127,
+                       via_hole=0.2, via=0.4, via_space=0.254,
+                       silk=0.153)
+    dc = brd.DC((25,25))
+    dc.push()
+    u1 = ATMEGA32U4_MU(dc).escape()
+    brd.outline()
+    brd.fill()
+    brd.check()
+    brd.save("output/atmega32u4_MU_Test")
+    
     
