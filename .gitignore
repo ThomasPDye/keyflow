@@ -1,3 +1,27 @@
+# cuflow output files
+*.GBL
+*.GBO
+*.GBP
+*.GBS
+*.GL2
+*.GL3
+*.GML
+*.GTL
+*.GTO
+*.GTP
+*.GTS
+*.TXT
+*.zip
+*.ucf
+*.svg
+*.csv
+*.gtl.pov
+*.gto.pov
+*.sub.pov
+*.gts.pov
+*.gtl.png
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
