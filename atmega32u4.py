@@ -5,8 +5,9 @@ Created on Wed May  5 10:24:20 2021
 @author: Thomas Dye
 """
 
+import os
+import grender
 from cuflow import cuflow
-from pcbtools.gerber import gerber as gtools
 
 class QFN44(cuflow.Part):
     family = "U"
@@ -28,7 +29,7 @@ class QFN44(cuflow.Part):
             dc.right(90)
             dc.forward(11*self.dims['e']/2)
             dc.left(180)
-            self.train(dc, 11, self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
+            self.train(dc, 11, lambda: self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
             dc.pop()
         
 class TQFP44(cuflow.Part):
@@ -46,7 +47,7 @@ class TQFP44(cuflow.Part):
             dc.right(90)
             dc.forward(11*self.dims['e']/2)
             dc.left(180)
-            self.train(dc, 11, self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
+            self.train(dc, 11, lambda: self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
             dc.pop()
 
 ATMEGA32U4_MU_pins = [
@@ -149,7 +150,6 @@ class ATMEGA32U4_MU(QFN44):
     mfr = 'ATMEGA32U4_MU'
     def escape(self):
         brd = self.board
-        
         assert len(ATMEGA32U4_MU_pins) == len(self.pads)
         for p,n in zip(self.pads, ATMEGA32U4_MU_pins):
             p.setname(n)
@@ -162,15 +162,19 @@ class ATMEGA32U4_AU(TQFP44):
     mfr = 'ATMEGA32U4_AU'
 
 if __name__ == "__main__":
+    if "output" not in os.listdir():
+        os.mkdir("output")
     brd = cuflow.Board((50,50), trace=0.127, space=0.127,
                        via_hole=0.2, via=0.4, via_space=0.254,
                        silk=0.153)
     dc = brd.DC((25,25))
     dc.push()
-    u1 = ATMEGA32U4_MU(dc).escape()
+    u1 = ATMEGA32U4_MU(dc)
+    u1.escape()
     brd.outline()
     brd.fill()
     brd.check()
     brd.save("output/atmega32u4_MU_Test")
-    
-    
+    rndrr = grender.Renderer("output/atmega32u4_MU_Test")
+    rndrr.new_window()
+    rndrr.render_layers(["GL2","GTL","GTS","GTO"])
