@@ -118,7 +118,9 @@ class CherryMX_PCBDiode(CherryMX):
 
 if __name__ == "__main__":
     U=19.05
-    brd = cuflow.Board((60,40), trace=0.127, space=0.127, via_hole=0.2, via=0.4, via_space=0.254, silk=0.153)
+    brd = cuflow.Board((60,40), trace=0.127, space=0.127,
+                       via_hole=0.2, via=0.4, via_space=0.254,
+                       silk=0.153)
     dc = brd.DC((30,20))
     dc.goxy(-1.5*U,U)
     dc.push()
@@ -126,4 +128,4 @@ if __name__ == "__main__":
     brd.outline()
     brd.fill()
     brd.check()
-    brd.save("switchTest")
+    brd.save("output/switchTest")
