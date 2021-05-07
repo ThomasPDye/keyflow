@@ -6,6 +6,7 @@ Created on Wed May  5 09:56:19 2021
 """
 
 from cuflow import cuflow
+import os
 
 class CherryMX(cuflow.Part):
     family="K"
@@ -16,7 +17,7 @@ class CherryMX(cuflow.Part):
     def pth(self,dc,d):
         dc.board.hole(dc.xy,d)
         p = dc.copy()
-        p.n_agon(d/2,30)
+        p.n_agon(d/2+dc.board.trace*2,30)
         p.contact()
         
         p = dc.copy()
@@ -31,17 +32,17 @@ class CherryMX(cuflow.Part):
         # Silkscreen Outline
         self.chamfered(dc, w=16, h=16)
         # Switch Pin 1
-        dc.goxy(-5.08,3*1.27)
+        dc.goxy(-5.08,2*1.27)
         dc.push()
         self.pth(dc,cuflow.inches(0.059))
         dc.pop()
         # Switch Pin 2
-        dc.goxy(10.16-1.27,3*1.27)
+        dc.goxy(10.16-1.27,2*1.27)
         dc.push()
         self.pth(dc,cuflow.inches(0.059))
         dc.pop()
         # back to center
-        dc.goxy(1.27-5.08,-6*1.27)
+        dc.goxy(1.27-5.08,-4*1.27)
         if(self.LED):
             # LED pin 1
             dc.goxy(-1.27,-5.08)
@@ -116,16 +117,29 @@ class CherryMX_PCBDiode(CherryMX):
     Diode=True
     MountingPins=True
 
+
+
 if __name__ == "__main__":
+    if "output" not in os.listdir():
+        os.mkdir("output")
     U=19.05
     brd = cuflow.Board((60,40), trace=0.127, space=0.127,
-                       via_hole=0.2, via=0.4, via_space=0.254,
+                       via_hole=0.2, via=0.4, via_space=0.127,
                        silk=0.153)
-    dc = brd.DC((30,20))
-    dc.goxy(-1.5*U,U)
-    dc.push()
-    s1 = CherryMX_PlateLED(dc).escape()
+    dc = brd.DC((30,10))
+    dc.goxy(-1*U,U)
+    k1 = CherryMX_Plate(dc)
+    k2 = CherryMX_PlateLED(dc.goxy(U,0))
+    k3 = CherryMX_PlateDiode(dc.goxy(U,0))
+    k4 = CherryMX_PCB(dc.goxy(-2*U,-U))
+    k5 = CherryMX_PCBLED(dc.goxy(U,0))
+    k6 = CherryMX_PCBDiode(dc.goxy(U,0))
     brd.outline()
     brd.fill()
     brd.check()
     brd.save("output/switchTest")
+    os.chdir('output')
+    command = "gerbv -f #FFFFFF {0}.GTO -f #FF0000 {0}.TXT -f #a0a000 {0}.GTL -f #008000 {0}.GBL -f #202020 {0}.GML"
+    os.system(command.format("switchTest"))
+    os.chdir('..')
+    

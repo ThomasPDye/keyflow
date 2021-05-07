@@ -46,7 +46,7 @@ class TQFP44(cuflow.Part):
             dc.push()
             dc.forward(self.dims['DE']/2 - self.dims['L']/2)
             dc.right(90)
-            dc.forward(11*self.dims['e']/2)
+            dc.forward((11-1)*self.dims['e']/2)
             dc.left(180)
             self.train(dc, 11, lambda: self.rpad(dc, self.dims['b'], self.dims['L']), self.dims['e'])
             dc.pop()
@@ -155,7 +155,7 @@ class ATMEGA32U4_MU(QFN44):
         for p,n in zip(self.pads, ATMEGA32U4_MU_pins):
             p.setname(n)
         
-        
+
         
         
 class ATMEGA32U4_AU(TQFP44):
@@ -166,13 +166,16 @@ if __name__ == "__main__":
     if "output" not in os.listdir():
         os.mkdir("output")
     brd = cuflow.Board((50,50), trace=0.127, space=0.127,
-                       via_hole=0.2, via=0.4, via_space=0.254,
+                       via_hole=0.2, via=0.4, via_space=0.127,
                        silk=0.153)
     dc = brd.DC((25,25))
-    dc.push()
     u1 = ATMEGA32U4_MU(dc)
     u1.escape()
     brd.outline()
     brd.fill()
     brd.check()
     brd.save("output/atmega32u4_MU_Test")
+    os.chdir('output')
+    command = "gerbv -f #FFFFFF {0}.GTO -f #FF0000 {0}.TXT -f #a0a000 {0}.GTL -f #008000 {0}.GBL -f #202020 {0}.GML"
+    os.system(command.format("atmega32u4_MU_Test"))
+    os.chdir('..')
