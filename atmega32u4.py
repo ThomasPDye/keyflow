@@ -6,6 +6,8 @@ Created on Wed May  5 10:24:20 2021
 """
 
 import os
+import cuplot
+import discrete
 from cuflow import cuflow
 
 class QFN44(cuflow.Part):
@@ -149,33 +151,104 @@ ATMEGA32U4_AU_pins = [
 class ATMEGA32U4_MU(QFN44):
     source = {'Microchip/Atmel' : 'ATMEGA32U4_MU'}
     mfr = 'ATMEGA32U4_MU'
-    def escape(self):
+    
+    def escape(self,lvcc='GL3',lgnd='GL2',capclass=discrete.C0402,crystalclass=discrete.Y2520):
         brd = self.board
         assert len(ATMEGA32U4_MU_pins) == len(self.pads)
         for p,n in zip(self.pads, ATMEGA32U4_MU_pins):
             p.setname(n)
-        
-
-        
-        
+        for i,p in enumerate(self.pads):
+            if p.name == 'GND' and  i != 0:
+                dc = self.pads[i].copy()
+                dc.right(180)
+                dc.forward(self.dims['DE']/2 - self.dims['D2E2']/2 - self.dims['L']/2)
+                dc.wire()
+                if self.pads[i-1].name == 'VCC':
+                    np = 5 - ((i-1-1)%11)
+                    nn = 5 - ((i-1)%11)
+                    dp = np/5
+                    dn = nn/5
+                    dcp = self.pads[i-1].forward(self.dims['L']/2)
+                    dcn = self.pads[i].forward(self.dims['L']/2)
+                    capdims = capclass.dims
+                    dcc = dcn.copy()
+                    pitchdelta = capdims['C'] - self.dims['e']
+                    y = pitchdelta/(dp-dn)
+                    x = y*dn
+                    dcc.goxy(x,y)
+                    cap = capclass(dcc.goxy(capdims['C']/2,capdims['X']/2),val='100nF')
+                    dcn.meet(cap.pads[0])
+                    dcn.wire()
+                    dcp.meet(cap.pads[1])
+                    dcp.wire()
+                    dcncap = cap.pads[0]
+                    dcpcap = cap.pads[1]
+                    dcncap.goxy((capdims['X']/2 + brd.via_space + brd.via/2),0)
+                    dcpcap.goxy(-(capdims['X']/2 + brd.via_space + brd.via/2),0)
+                    dcncap.wire()
+                    dcncap.via(lgnd)
+                    dcpcap.wire()
+                    dcpcap.via(lvcc)
+                elif self.pads[i+1].name == 'AVCC':
+                    np = 5 - ((i+1-1)%11)
+                    nn = 5 - ((i-1)%11)
+                    dp = np/5
+                    dn = nn/5
+                    dcp = self.pads[i+1].forward(self.dims['L']/2)
+                    dcn = self.pads[i].forward(self.dims['L']/2)
+                    capdims = capclass.dims
+                    dcc = dcp.copy()
+                    pitchdelta = capdims['C'] - self.dims['e']
+                    y = pitchdelta/(dn-dp)
+                    x = y*dp
+                    dcc.goxy(x,y)
+                    cap = capclass(dcc.goxy(capdims['C']/2,capdims['X']/2),val='100nF')
+                    dcn.meet(cap.pads[1])
+                    dcn.wire()
+                    dcp.meet(cap.pads[0])
+                    dcp.wire()
+                    dcncap = cap.pads[1]
+                    dcpcap = cap.pads[0]
+                    dcncap.goxy(-(capdims['X']/2 + brd.via_space + brd.via/2),0)
+                    dcpcap.goxy((capdims['X']/2 + brd.via_space + brd.via/2),0)
+                    dcncap.wire()
+                    dcncap.via(lgnd)
+                    dcpcap.wire()
+                    dcpcap.via(lvcc)
+            if p.name == 'XTAL1' and self.pads[i-1].name == 'XTAL2':
+                n2 = 5 - ((i-1-1)%11)
+                n1 = 5 - ((i-1)%11)
+                d2 = n2/5
+                d1 = n1/5
+                dc2 = self.pads[i-1].forward(self.dims['L']/2)
+                dc1 = self.pads[i].forward(self.dims['L']/2)
+                crystaldims = crystalclass.dims
+                
+                
 class ATMEGA32U4_AU(TQFP44):
     source = {'Microchip/Atmel' : 'ATMEGA32U4_AU'}
     mfr = 'ATMEGA32U4_AU'
+    def escape(self):
+        brd = self.board
+        assert len(ATMEGA32U4_AU_pins) == len(self.pads)
+        for p,n in zip(self.pads, ATMEGA32U4_MU_pins):
+            p.setname(n)
+        
 
 if __name__ == "__main__":
     if "output" not in os.listdir():
         os.mkdir("output")
-    brd = cuflow.Board((50,50), trace=0.127, space=0.127,
+    brd = cuflow.Board((20,20), trace=0.127, space=0.127,
                        via_hole=0.2, via=0.4, via_space=0.127,
                        silk=0.153)
-    dc = brd.DC((25,25))
-    u1 = ATMEGA32U4_MU(dc)
-    u1.escape()
+    dc = brd.DC((10,10))
+    um = ATMEGA32U4_MU(dc)
+    um.escape()
     brd.outline()
     brd.fill()
     brd.check()
-    brd.save("output/atmega32u4_MU_Test")
-    os.chdir('output')
-    command = "gerbv -f #FFFFFF {0}.GTO -f #FF0000 {0}.TXT -f #a0a000 {0}.GTL -f #008000 {0}.GBL -f #202020 {0}.GML"
-    os.system(command.format("atmega32u4_MU_Test"))
-    os.chdir('..')
+    basename = "output/atmega32u4_MU_Test"
+    brd.save(basename)
+    cuplot.gerbvplt(basename)
+    #cuplot.gerbv(basename)
+    

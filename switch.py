@@ -5,8 +5,9 @@ Created on Wed May  5 09:56:19 2021
 @author: Thomas Dye
 """
 
-from cuflow import cuflow
 import os
+import cuplot
+from cuflow import cuflow
 
 class CherryMX(cuflow.Part):
     family="K"
@@ -137,9 +138,7 @@ if __name__ == "__main__":
     brd.outline()
     brd.fill()
     brd.check()
-    brd.save("output/switchTest")
-    os.chdir('output')
-    command = "gerbv -f #FFFFFF {0}.GTO -f #FF0000 {0}.TXT -f #a0a000 {0}.GTL -f #008000 {0}.GBL -f #202020 {0}.GML"
-    os.system(command.format("switchTest"))
-    os.chdir('..')
+    basename = "output/switch_Test"
+    brd.save(basename)
+    cuplot.gerbvplt(basename)
     
